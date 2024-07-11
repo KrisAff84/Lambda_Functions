@@ -6,6 +6,15 @@ Lambda authorizer that performs various checks to determine if a request is auth
 
 Additionally, this function publishes a custom metric to CloudWatch based on the result of the authorizerion
 check. The metric will count the number of times the LambdaAuthorizer either approves or denies a request.
+
+Environment Variables:
+- ALLOWED_PATHS: List of allowed paths (default: '["/"]')
+- CUSTOM_HEADER: Custom header value (required)
+- BLACKLISTED_IPS: List of blacklisted IPs (default: '[]')
+- CW_METRIC_NAMESPACE: CloudWatch metric namespace
+- CW_DIMENSION_NAME: CloudWatch metric dimension name
+- CW_DIMENSION_VALUE: CloudWatch metric dimension value
+
 """
 
 import json
