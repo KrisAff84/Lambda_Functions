@@ -1,4 +1,8 @@
-
+"""
+This is a simple example of an API Gateway custom authorizer Lambda function.
+The function demonstrates how to parse the headers of an incoming request and
+check for a specific custom header value.
+"""
 
 def lambda_handler(event, context):
 
