@@ -30,12 +30,15 @@ import time
 import datetime
 import csv
 import io
+import logging
 import boto3
 
 
 iam = boto3.client('iam')
 sns = boto3.client('sns')
 
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 def get_credential_report():
     report_ready = False
@@ -120,25 +123,30 @@ def determine_keys_to_delete(full_credential_report, max_number_of_days):
 def delete_access_keys(all_keys_to_delete, max_number_of_days):
     if all_keys_to_delete:
         try:
-        # This actually deletes the keys. Do not uncomment until code is implemented in Lambda function
-            # for key in all_keys_to_delete:
-            #     iam.delete_access_key(UserName=key['User'], AccessKeyId=key['KeyID'])
+            
+            for key in all_keys_to_delete:
+                iam.delete_access_key(UserName=key['User'], AccessKeyId=key['KeyID'])
 
-            sns_message = (f"The following access keys were older than {max_number_of_days} days and have been deleted:\n" 
-                        f"{json.dumps(all_keys_to_delete, indent=2)}")
+            sns_message = {
+                    "Message" : f"The following access keys were older than {max_number_of_days} days and have been deleted",
+                    "DeletedKeys" : all_keys_to_delete
+            }
                 
         except iam.exceptions.ServiceFailureException:
-            sns_message = (f"You have keys that are older than {max_number_of_days} days, but there was an error deleting them. Please check the logs.")
+            sns_message = {
+                "Message" : f"You have keys that are older than {max_number_of_days} days, but there was an error deleting them. Please check the logs.",
+                "KeysMarkedForDeletion" : all_keys_to_delete
+            }
     else:
-        sns_message = (f"The Delete_Old_Access_Keys Lambda function ran successfully, but no keys were detected that were older than {max_number_of_days} days.\n"
-                        f"\nNo Access Keys were deleted.")
+        sns_message = {
+            "Message": f"The DeleteOldAccessKeys Lambda function ran successfully, but no keys were detected that were older than {max_number_of_days} days. No Access Keys were deleted."
+        }
 
     return sns_message
 
 def send_sns_message(sns_topic_arn, sns_message):
-    print(sns_message)
     sns.publish(TopicArn=sns_topic_arn,
-                Message= sns_message,
+                Message=(json.dumps(sns_message, indent=4))
                 )
     
    
@@ -156,4 +164,5 @@ def lambda_handler(event, context):
         'snsTopic' : sns_topic_arn,
         'snsMessage': sns_message
     }
-    print(response)
+    response_str = json.dumps(response)
+    logger.info(response_str)
