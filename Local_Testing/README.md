@@ -1,0 +1,2 @@
+This directory is designed to act as a unit testing environment for the final Lambda functions, so that they can be tested just
+as you would test any other code or script, without having to deploy them to AWS Lambda. Functions in this directory should not use the lambda handler. Instead, pass in event objects as either user input or variables within the script; same for any environment variables that may be needed. 
